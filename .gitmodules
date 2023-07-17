@@ -1,0 +1,3 @@
+[submodule "leantime"]
+	path = leantime
+	url = https://github.com/dresch86/docker-leantime.git

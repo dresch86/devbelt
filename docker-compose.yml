@@ -1,0 +1,66 @@
+version: "3.9"
+services: 
+    haproxy:
+        build:
+            context: ./
+            args:
+                PUBLIC_DOMAIN: "${PUBLIC_DOMAIN}"
+            dockerfile: ./haproxy.Dockerfile
+        hostname: ha01.${PUBLIC_DOMAIN}
+        restart: on-failure
+        environment:
+            PUBLIC_DOMAIN: "${PUBLIC_DOMAIN}"
+        ports:
+            - "${PUBLIC_ADDRESS}:80:80"
+            - "${PUBLIC_ADDRESS}:443:443"
+        depends_on:
+            - gitea
+            - leantime
+        volumes:
+            - logs:/var/log
+    gitea:
+        image: gitea/gitea:${GITEA_VERSION}
+        hostname: gitea.${PUBLIC_DOMAIN}
+        restart: always
+        ports:
+            - "${LOCAL_ADDRESS}:23000:3000"
+            - "${LOCAL_ADDRESS}:2222:22"
+        environment:
+            - USER_UID=1000
+            - USER_GID=1000
+        depends_on:
+            - mariadb
+        volumes:
+            - logs:/var/log
+            - gitea-data:/data
+            - gitea-config:/etc/gitea
+            - /etc/timezone:/etc/timezone:ro
+            - /etc/localtime:/etc/localtime:ro
+            - ./gitea/gitea.ini:/etc/gitea/custom/conf/app.ini
+    mariadb:
+        image: mariadb:${MARIADB_VERSION}
+        hostname: db.${PUBLIC_DOMAIN}
+        ports:
+            - "${LOCAL_ADDRESS}:43306:3306"
+        restart: 'always'
+        volumes: 
+            - db:/var/lib/mysql
+            - logs:/var/log
+            - ./mariadb/init:/docker-entrypoint-initdb.d
+        environment:
+            MYSQL_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD}"
+            GITEA_DB_NAME: "${GITEA_DB_NAME}"
+            GITEA_DB_USER: "${GITEA_DB_USER}"
+            GITEA_DB_PASSWORD: "${GITEA_DB_PASSWORD}"
+            LEAN_DB_DATABASE: "${LEAN_DB_DATABASE}"
+            LEAN_DB_USER: "${LEAN_DB_USER}"
+            LEAN_DB_PASSWORD: "${LEAN_DB_PASSWORD}"
+volumes:
+    db: 
+        name: "devbelt-db"
+    logs:
+        name: "devbelt-logs"
+    gitea-data:
+        name: "devbelt-gitea-data"
+    gitea-config:
+        name: "devbelt-gitea-config"
