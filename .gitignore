@@ -6,6 +6,3 @@
 *.json
 !sample.*.ini
 !sample.*.json
-
-# SSL certs / keys should not be committed
-common/ssl/*.pem
