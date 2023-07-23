@@ -1,3 +1,6 @@
 [submodule "leantime"]
 	path = leantime
 	url = https://github.com/dresch86/docker-leantime.git
+[submodule "common/owasp"]
+	path = common/owasp
+	url = https://github.com/coreruleset/coreruleset.git

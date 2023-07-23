@@ -22,7 +22,7 @@ defaults
 
 frontend portal
     bind *:80
-    bind *:443 ssl crt /etc/ssl/certs/${PUBLIC_DOMAIN}.pem
+    bind *:443 ssl crt /etc/ssl/certs/${PUBLIC_DOMAIN}/fullchain.pem
     http-request set-header X-Forwarded-Proto https if { ssl_fc }
     http-request set-header X-Forwarded-Proto http if !{ ssl_fc }
     http-request redirect scheme https code 301 unless { ssl_fc }
