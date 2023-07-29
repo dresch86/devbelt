@@ -18,7 +18,7 @@ services:
             - leantime
         volumes:
             - logs:/var/log
-            - ./common/ssl/fullchain.pem:/etc/ssl/certs/${PUBLIC_DOMAIN}/fullchain.pem
+            - ./common/ssl/bundle.pem:/etc/ssl/certs/${PUBLIC_DOMAIN}/bundle.pem
     gitea:
         image: gitea/gitea:${GITEA_VERSION}
         hostname: gitea.${PUBLIC_DOMAIN}
