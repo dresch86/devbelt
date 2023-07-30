@@ -38,6 +38,23 @@ services:
             - /etc/timezone:/etc/timezone:ro
             - /etc/localtime:/etc/localtime:ro
             - ./gitea/gitea.ini:/etc/gitea/custom/conf/app.ini
+    leantime:
+        image: leantime/leantime:latest
+        build:
+            context: ./
+            args:
+                LEAN_VERSION: "${LEAN_VERSION:-2.3.25}"
+            dockerfile: ./leantime.Dockerfile
+        restart: unless-stopped
+        hostname: db.${PUBLIC_DOMAIN}
+        env_file: 
+        - ./leantime/.env.lean                                         # Environment file with settings
+        volumes:
+        - ./leantime/.env.lean:/var/www/html/config/.env
+        - leantime_public_userfiles:/var/www/html/public/userfiles     # Volume to store public files, logo etc
+        - leantime_userfiles:/var/www/html/userfiles                   # Volume to store private user uploaded files
+        ports:
+        - "${LOCAL_ADDRESS}:20080:80"                                  # The port to expose and access Leantime
     mariadb:
         image: mariadb:${MARIADB_VERSION}
         hostname: db.${PUBLIC_DOMAIN}
@@ -65,3 +82,7 @@ volumes:
         name: "devbelt-gitea-data"
     gitea-config:
         name: "devbelt-gitea-config"
+    leantime_userfiles:
+        name: "devbelt-leantime-userfiles"
+    leantime_public_userfiles:
+        name: "devbelt-leantime-public-userfiles"
