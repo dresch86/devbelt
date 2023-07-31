@@ -43,7 +43,7 @@ services:
         build:
             context: ./
             args:
-                LEAN_VERSION: "${LEAN_VERSION:-2.3.25}"
+                LEAN_VERSION: "${LEAN_VERSION:-2.3.27}"
             dockerfile: ./leantime.Dockerfile
         restart: unless-stopped
         hostname: db.${PUBLIC_DOMAIN}
