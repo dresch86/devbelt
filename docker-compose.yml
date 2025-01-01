@@ -29,6 +29,7 @@ services:
         environment:
             - USER_UID=1000
             - USER_GID=1000
+            - GITEA_CUSTOM=/data
         depends_on:
             - mariadb
         volumes:
@@ -37,7 +38,7 @@ services:
             - gitea-config:/etc/gitea
             - /etc/timezone:/etc/timezone:ro
             - /etc/localtime:/etc/localtime:ro
-            - ./gitea/gitea.ini:/etc/gitea/custom/conf/app.ini
+            - ./gitea/gitea.ini:/etc/gitea/conf/app.ini
     leantime:
         image: leantime/leantime:latest
         build:
