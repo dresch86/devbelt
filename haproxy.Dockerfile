@@ -1,5 +1,7 @@
 FROM haproxy:3.1.1
 
+ARG USER_UID
+ARG USER_GID
 ARG PUBLIC_DOMAIN
 ENV PUBLIC_DOMAIN=${PUBLIC_DOMAIN}
 
@@ -20,5 +22,3 @@ COPY common/owasp/crs-setup.conf /opt/owasp/crs/crs-setup.conf
 COPY haproxy/01-haproxy-config.sh /01-haproxy-config.sh
 RUN chmod +x /01-haproxy-config.sh
 RUN /01-haproxy-config.sh
-
-USER haproxy

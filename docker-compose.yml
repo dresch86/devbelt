@@ -5,11 +5,16 @@ services:
             context: ./
             args:
                 PUBLIC_DOMAIN: "${PUBLIC_DOMAIN}"
+                USER_UID: "${MY_UID:-1000}"
+                USER_GID: "${MY_GID:-1000}"
             dockerfile: ./haproxy.Dockerfile
         hostname: ha01.${PUBLIC_DOMAIN}
         restart: on-failure
+        user: "${MY_UID:-1000}:${MY_GID:-1000}"
         environment:
-            PUBLIC_DOMAIN: "${PUBLIC_DOMAIN}"
+            - PUBLIC_DOMAIN="${PUBLIC_DOMAIN}"
+            - USER_UID="${MY_UID:-1000}"
+            - USER_GID="${MY_GID:-1000}"
         ports:
             - "${PUBLIC_ADDRESS}:80:80"
             - "${PUBLIC_ADDRESS}:443:443"
@@ -18,17 +23,20 @@ services:
             - leantime
         volumes:
             - logs:/var/log
-            - ./common/ssl/bundle.pem:/etc/ssl/certs/${PUBLIC_DOMAIN}/bundle.pem
+        secrets:
+            - ssl_bundled
     gitea:
-        image: gitea/gitea:${GITEA_VERSION}
+        build:
+            context: ./
+            args:
+                VERSION: "${GITEA_VERSION}"
+            dockerfile: ./gitea.Dockerfile
         hostname: gitea.${PUBLIC_DOMAIN}
         restart: always
         ports:
             - "${LOCAL_ADDRESS}:23000:3000"
             - "${LOCAL_ADDRESS}:2222:22"
         environment:
-            - USER_UID=1000
-            - USER_GID=1000
             - GITEA_CUSTOM=/data
         depends_on:
             - mariadb
@@ -38,13 +46,14 @@ services:
             - gitea-config:/etc/gitea
             - /etc/timezone:/etc/timezone:ro
             - /etc/localtime:/etc/localtime:ro
-            - ./gitea/gitea.ini:/etc/gitea/conf/app.ini
+            - ./gitea/app.ini:/etc/gitea/custom/conf/app.ini
+            - ./gitea/app.ini:/data/conf/app.ini
     leantime:
         image: leantime/leantime:latest
         build:
             context: ./
             args:
-                LEAN_VERSION: "${LEAN_VERSION:-2.3.27}"
+                LEAN_VERSION: "${LEAN_VERSION:-3.3.3}"
             dockerfile: ./leantime.Dockerfile
         restart: unless-stopped
         hostname: db.${PUBLIC_DOMAIN}
@@ -68,12 +77,16 @@ services:
             - ./mariadb/init:/docker-entrypoint-initdb.d
         environment:
             MYSQL_ROOT_PASSWORD: "${MARIADB_ROOT_PASSWORD}"
+            MARIADB_AUTO_UPGRADE: 1
             GITEA_DB_NAME: "${GITEA_DB_NAME}"
             GITEA_DB_USER: "${GITEA_DB_USER}"
             GITEA_DB_PASSWORD: "${GITEA_DB_PASSWORD}"
             LEAN_DB_DATABASE: "${LEAN_DB_DATABASE}"
             LEAN_DB_USER: "${LEAN_DB_USER}"
             LEAN_DB_PASSWORD: "${LEAN_DB_PASSWORD}"
+secrets:
+    ssl_bundled:
+        file: ./common/ssl/bundle.pem
 volumes:
     db: 
         name: "devbelt-db"

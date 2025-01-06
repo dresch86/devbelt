@@ -1,14 +1,13 @@
 #!/bin/bash
 set -e
 
+groupmod -g "${USER_GID}" haproxy && usermod -u "${USER_UID}" -g "${USER_GID}" haproxy
 ESCAPED_PUBLIC_DOMAIN=${PUBLIC_DOMAIN//\./\\.}
 
 cat > /usr/local/etc/haproxy/haproxy.cfg <<EOF
 global
     daemon
     maxconn 4000
-    user haproxy
-    group haproxy
 
 defaults
     mode                    http
@@ -22,7 +21,7 @@ defaults
 
 frontend portal
     bind *:80
-    bind *:443 ssl crt /etc/ssl/certs/${PUBLIC_DOMAIN}/bundle.pem
+    bind *:443 ssl crt /run/secrets/ssl_bundled
     http-request set-header X-Forwarded-Proto https if { ssl_fc }
     http-request set-header X-Forwarded-Proto http if !{ ssl_fc }
     http-request redirect scheme https code 301 unless { ssl_fc }
